@@ -126,7 +126,7 @@ class RestaurantMenuItem(models.Model):
 
 class Order(models.Model):
     """Модель сущности Заказ"""
-    products = models.ManyToManyField(Product, related_name='orders', verbose_name='Продукты')
+    products = models.ManyToManyField(Product, related_name='orders', through='OrderProduct', verbose_name='Продукты')
     firstname = models.CharField(blank=True, max_length=150, verbose_name='Имя')
     lastname = models.CharField(blank=True, max_length=150, verbose_name='Фамилия')
     address = models.TextField(verbose_name='Адрес')
@@ -142,3 +142,13 @@ class Order(models.Model):
 
     def __str__(self):
         return f'{self.phonenumber} - {self.address}'
+
+
+class OrderProduct(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, verbose_name='Заказ')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name='Продукт')
+    quantity = models.PositiveIntegerField(default=0, verbose_name='Количество')
+
+    class Meta:
+        verbose_name = 'Продукт'
+        verbose_name_plural = 'Продукты'
