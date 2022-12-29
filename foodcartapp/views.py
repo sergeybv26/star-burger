@@ -3,7 +3,7 @@ from pprint import pprint
 
 from django.http import JsonResponse
 from django.templatetags.static import static
-
+from rest_framework.decorators import api_view
 
 from .models import Product, Order
 
@@ -60,9 +60,11 @@ def product_list_api(request):
     })
 
 
+@api_view(['POST'])
 def register_order(request):
+    orders = Order.objects.all()
     try:
-        new_order = json.loads(request.body.decode())
+        new_order = request.data
     except ValueError:
         return JsonResponse({
             'error': 'В запросе необходимо передать JSON',
