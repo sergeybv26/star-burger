@@ -1,9 +1,11 @@
 import json
 from pprint import pprint
 
+from django.forms import model_to_dict
 from django.http import JsonResponse
 from django.templatetags.static import static
 from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 from .models import Product, Order
 
@@ -63,12 +65,17 @@ def product_list_api(request):
 @api_view(['POST'])
 def register_order(request):
     orders = Order.objects.all()
-    try:
-        new_order = request.data
-    except ValueError:
-        return JsonResponse({
-            'error': 'В запросе необходимо передать JSON',
+    new_order = request.data
+    if not new_order:
+        return Response({
+            'error': 'В запросе необходимо передать JSON'
         })
+    products = new_order.get('products')
+    if not products or not isinstance(products, list):
+        print('BAD FIELD')
+        return Response(
+            {'error': 'Поле products отсутствует или не является списком'}
+        )
     try:
         order = Order.objects.create(
             firstname=new_order.get('firstname', ''),
@@ -76,11 +83,9 @@ def register_order(request):
             address=new_order.get('address'),
             phonenumber=new_order.get('phonenumber')
         )
-        for product in new_order.get('products'):
+        for product in products:
             order.products.add(product.get('product'), through_defaults={'quantity': product.get('quantity')})
     except Exception as err:
-        return JsonResponse(
-            {'error': err}
-        )
+        return Response({'error': err})
 
-    return JsonResponse({})
+    return Response({})
