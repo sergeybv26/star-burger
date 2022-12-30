@@ -127,8 +127,8 @@ class RestaurantMenuItem(models.Model):
 class Order(models.Model):
     """Модель сущности Заказ"""
     products = models.ManyToManyField(Product, related_name='orders', through='OrderProduct', verbose_name='Продукты')
-    firstname = models.CharField(blank=True, max_length=150, verbose_name='Имя')
-    lastname = models.CharField(blank=True, max_length=150, verbose_name='Фамилия')
+    firstname = models.CharField(max_length=150, verbose_name='Имя')
+    lastname = models.CharField(max_length=150, verbose_name='Фамилия')
     address = models.TextField(verbose_name='Адрес')
     phonenumber = PhoneNumberField(verbose_name='Телефон')
 

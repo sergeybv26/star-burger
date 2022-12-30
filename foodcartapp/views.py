@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from phonenumber_field.validators import validate_international_phonenumber
 
 from .models import Product, Order
+from .serializers import OrderSerializer
 
 
 def banners_list_api(request):
@@ -67,64 +68,17 @@ def product_list_api(request):
 
 @api_view(['POST'])
 def register_order(request):
-    # orders = Order.objects.all()
-    new_order = request.data
-    if not new_order:
-        return Response(
-            {'error': 'В запросе необходимо передать JSON'},
-            status=status.HTTP_406_NOT_ACCEPTABLE
-        )
-    products = new_order.get('products')
-    if not products or not isinstance(products, list):
-        return Response(
-            {'error': 'Поле products отсутствует или не является списком'},
-            status=status.HTTP_406_NOT_ACCEPTABLE
-        )
-    firstname = new_order.get('firstname')
-    if not firstname or not isinstance(firstname, str):
-        return Response(
-            {'error': 'Поле firstname отсутствует или не является строкой'},
-            status=status.HTTP_406_NOT_ACCEPTABLE
-        )
-    lastname = new_order.get('lastname')
-    if not lastname or not isinstance(lastname, str):
-        return Response(
-            {'error': 'Поле lastname отсутствует или не является строкой'},
-            status=status.HTTP_406_NOT_ACCEPTABLE
-        )
-    address = new_order.get('address')
-    if not address or not isinstance(address, str):
-        return Response(
-            {'error': 'Поле address отсутствует или не является строкой'},
-            status=status.HTTP_406_NOT_ACCEPTABLE
-        )
-    phonenumber = new_order.get('phonenumber')
-    if not phonenumber:
-        return Response(
-            {'error': 'Поле phonenumber не может быть пустым'},
-            status=status.HTTP_406_NOT_ACCEPTABLE
-        )
-    try:
-        validate_international_phonenumber(phonenumber)
-    except ValidationError as err:
-        return Response(
-            {'error': err},
-            status=status.HTTP_406_NOT_ACCEPTABLE
-        )
-    try:
-        order = Order.objects.create(
-            firstname=firstname,
-            lastname=lastname,
-            address=address,
-            phonenumber=phonenumber
-        )
-        for product in products:
-            product_obj = Product.objects.get(pk=product.get('product'))
-            order.products.add(product_obj, through_defaults={'quantity': product.get('quantity')})
-    except Product.DoesNotExist:
-        return Response(
-            {'error': 'Не верный ID продукта'},
-            status=status.HTTP_406_NOT_ACCEPTABLE
-        )
+    serializer = OrderSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
 
-    return Response({})
+    order = Order.objects.create(
+        firstname=serializer.validated_data['firstname'],
+        lastname=serializer.validated_data['lastname'],
+        address=serializer.validated_data['address'],
+        phonenumber=serializer.validated_data['phonenumber']
+    )
+    products = serializer.validated_data['products']
+    for product in products:
+        order.products.add(product['product'], through_defaults={'quantity': product.get('quantity')})
+
+    return Response({'order_id': order.id})
