@@ -70,15 +70,6 @@ def product_list_api(request):
 def register_order(request):
     serializer = OrderSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
+    serializer.save()
 
-    order = Order.objects.create(
-        firstname=serializer.validated_data['firstname'],
-        lastname=serializer.validated_data['lastname'],
-        address=serializer.validated_data['address'],
-        phonenumber=serializer.validated_data['phonenumber']
-    )
-    products = serializer.validated_data['products']
-    for product in products:
-        order.products.add(product['product'], through_defaults={'quantity': product.get('quantity')})
-
-    return Response({'order_id': order.id})
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
