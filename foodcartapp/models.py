@@ -149,12 +149,22 @@ class Order(models.Model):
     ASSEMBLY = 'AS'
     DELIVERY = 'DL'
     FINISH = 'FN'
+
+    ELECTRONIC_PAY = 'EL'
+    CASH_PAY = 'CS'
+
     STATUS_ORDER_CHOICES = [
         (ACCEPT, 'Принят'),
         (ASSEMBLY, 'Сборка'),
         (DELIVERY, 'Доставка'),
         (FINISH, 'Завершен')
     ]
+
+    PAY_METHOD_CHOICES = [
+        (ELECTRONIC_PAY, 'Электронными'),
+        (CASH_PAY, 'Наличными')
+    ]
+
     products = models.ManyToManyField(Product, related_name='orders', through='OrderProduct', verbose_name='Продукты')
     firstname = models.CharField(max_length=150, verbose_name='Имя')
     lastname = models.CharField(max_length=150, verbose_name='Фамилия')
@@ -164,6 +174,8 @@ class Order(models.Model):
                                     default=ACCEPT, verbose_name='Статус заказа', db_index=True)
 
     comment = models.TextField(blank=True, verbose_name='Комментарий к заказу')
+    pay_method = models.CharField(max_length=2, choices=PAY_METHOD_CHOICES,
+                                  default=CASH_PAY, verbose_name='Способ оплаты', db_index=True)
 
     created_at = models.DateTimeField(default=timezone.now, verbose_name='Создан', db_index=True)
     called_at = models.DateTimeField(blank=True, null=True, verbose_name='Дата звонка', db_index=True)
