@@ -162,6 +162,8 @@ class Order(models.Model):
     order_status = models.CharField(max_length=2, choices=STATUS_ORDER_CHOICES,
                                     default=ACCEPT, verbose_name='Статус заказа', db_index=True)
 
+    comment = models.TextField(blank=True, verbose_name='Комментарий к заказу')
+
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создан', db_index=True)
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Обновлен')
 
