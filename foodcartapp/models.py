@@ -144,11 +144,23 @@ class OrderProductQuerySet(models.QuerySet):
 
 class Order(models.Model):
     """Модель сущности Заказ"""
+    ACCEPT = 'AC'
+    ASSEMBLY = 'AS'
+    DELIVERY = 'DL'
+    FINISH = 'FN'
+    STATUS_ORDER_CHOICES = [
+        (ACCEPT, 'Принят'),
+        (ASSEMBLY, 'Сборка'),
+        (DELIVERY, 'Доставка'),
+        (FINISH, 'Завершен')
+    ]
     products = models.ManyToManyField(Product, related_name='orders', through='OrderProduct', verbose_name='Продукты')
     firstname = models.CharField(max_length=150, verbose_name='Имя')
     lastname = models.CharField(max_length=150, verbose_name='Фамилия')
     address = models.TextField(verbose_name='Адрес')
     phonenumber = PhoneNumberField(verbose_name='Телефон')
+    order_status = models.CharField(max_length=2, choices=STATUS_ORDER_CHOICES,
+                                    default=ACCEPT, verbose_name='Статус заказа', db_index=True)
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создан', db_index=True)
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Обновлен')
