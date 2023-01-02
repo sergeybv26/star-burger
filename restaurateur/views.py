@@ -1,4 +1,5 @@
 from django import forms
+from django.db.models import F
 from django.shortcuts import redirect, render
 from django.views import View
 from django.urls import reverse_lazy
@@ -8,7 +9,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 
 
-from foodcartapp.models import Product, Restaurant
+from foodcartapp.models import Product, Restaurant, Order, OrderProduct
 
 
 class Login(forms.Form):
@@ -65,8 +66,8 @@ def is_manager(user):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_products(request):
-    restaurants = list(Restaurant.objects.order_by('name'))
-    products = list(Product.objects.prefetch_related('menu_items'))
+    restaurants = Restaurant.objects.order_by('name')
+    products = Product.objects.prefetch_related('menu_items').select_related('category')
 
     products_with_restaurant_availability = []
     for product in products:
@@ -92,6 +93,9 @@ def view_restaurants(request):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
+    orders = Order.objects.all()
+    order_cost = Order.objects.order_cost()
     return render(request, template_name='order_items.html', context={
-        # TODO заглушка для нереализованного функционала
+        'order_items': orders,
+        'orders_cost': order_cost
     })

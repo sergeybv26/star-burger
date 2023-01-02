@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator
+from django.db.models import F, Sum
 from phonenumber_field.modelfields import PhoneNumberField
 
 
@@ -124,6 +125,24 @@ class RestaurantMenuItem(models.Model):
         return f"{self.restaurant.name} - {self.product.name}"
 
 
+class OrderProductQuerySet(models.QuerySet):
+    def order_cost(self):
+        order_products_cost = (
+            OrderProduct.objects
+            .all()
+            .select_related('product')
+            .annotate(cost=F('product__price') * F('quantity'))
+            .values_list('order', 'cost')
+            .values('order')
+            .annotate(total_price=Sum('cost'))
+        )
+        orders_cost = {}
+        for cost_item in order_products_cost:
+            orders_cost[cost_item['order']] = cost_item['total_price']
+
+        return orders_cost
+
+
 class Order(models.Model):
     """Модель сущности Заказ"""
     products = models.ManyToManyField(Product, related_name='orders', through='OrderProduct', verbose_name='Продукты')
@@ -134,6 +153,8 @@ class Order(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создан', db_index=True)
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Обновлен')
+
+    objects = OrderProductQuerySet.as_manager()
 
     class Meta:
         ordering = ['-created_at']
