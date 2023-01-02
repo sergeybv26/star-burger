@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from foodcartapp.models import OrderProduct, Order
+from foodcartapp.models import OrderProduct, Order, Product
 
 
 class OrderProductSerializer(serializers.ModelSerializer):
@@ -21,7 +21,10 @@ class OrderSerializer(serializers.ModelSerializer):
         )
         products = validated_data['products']
         for product in products:
-            order.products.add(product['product'], through_defaults={'quantity': product.get('quantity')})
+            order.products.add(product['product'], through_defaults={
+                'quantity': product.get('quantity'),
+                'price': product['product'].price
+            })
 
         return order
 
