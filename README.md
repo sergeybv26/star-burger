@@ -60,7 +60,7 @@ pip install -r requirements.txt
 ```sh
 SECRET_KEY=django-insecure-0if40nf4nf93n4
 ```
-Определите ключ API Yandex в переменной окружения `YA_GEO_API_KEY` в файле `.env`. Для чего допорлните файл `.env` следующим кодом:
+Определите ключ API Yandex в переменной окружения `YA_GEO_API_KEY` в файле `.env`. Для чего дополните файл `.env` следующим кодом:
 ```shell
 YA_GEO_API_KEY=<ваш ключ API>
 ```
