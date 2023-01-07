@@ -166,6 +166,8 @@ class Order(models.Model):
     ]
 
     products = models.ManyToManyField(Product, related_name='orders', through='OrderProduct', verbose_name='Продукты')
+    restaurant = models.ForeignKey(Restaurant, related_name='cook_orders', blank=True, null=True,
+                                   on_delete=models.SET_NULL, verbose_name='Готовит ресторан')
     firstname = models.CharField(max_length=150, verbose_name='Имя')
     lastname = models.CharField(max_length=150, verbose_name='Фамилия')
     address = models.TextField(verbose_name='Адрес')

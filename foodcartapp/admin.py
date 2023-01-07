@@ -119,6 +119,13 @@ class OrderAdmin(admin.ModelAdmin):
 
     inlines = [OrderProductInline]
 
+    def response_change(self, request, obj):
+        if obj.restaurant:
+            obj.order_status = 'AS'
+            obj.save()
+        response = super().response_change(request, obj)
+        return response
+
     def response_post_save_change(self, request, obj):
         response = super().response_post_save_change(request, obj)
         if "next" in request.GET:
