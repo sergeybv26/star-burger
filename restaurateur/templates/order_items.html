@@ -44,7 +44,7 @@
                 <summary>Может быть приготовлен ресторанами:</summary>
                 <ul>
                   {% for restaurant in restaurants|get_order_param:item.id %}
-                    <li>{{ restaurant }}</li>
+                    <li>{{ restaurant.0 }} - {{ restaurant.1 }} км</li>
                   {% endfor %}
                 </ul>
               </details>
