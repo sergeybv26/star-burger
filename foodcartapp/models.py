@@ -127,7 +127,7 @@ class RestaurantMenuItem(models.Model):
 
 
 class OrderProductQuerySet(models.QuerySet):
-    def order_cost(self):
+    def get_order_cost(self):
         order_products_cost = (
             OrderProduct.objects
                 .all()
