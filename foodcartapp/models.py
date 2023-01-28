@@ -170,7 +170,7 @@ class Order(models.Model):
                                    on_delete=models.SET_NULL, verbose_name='Готовит ресторан')
     firstname = models.CharField(max_length=150, verbose_name='Имя')
     lastname = models.CharField(max_length=150, verbose_name='Фамилия')
-    address = models.TextField(verbose_name='Адрес')
+    address = models.CharField(max_length=255, verbose_name='Адрес')
     phonenumber = PhoneNumberField(verbose_name='Телефон')
     order_status = models.CharField(max_length=2, choices=STATUS_ORDER_CHOICES,
                                     default=ACCEPT, verbose_name='Статус заказа', db_index=True)
