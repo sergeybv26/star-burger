@@ -176,8 +176,7 @@ class Order(models.Model):
                                     default=ACCEPT, verbose_name='Статус заказа', db_index=True)
 
     comment = models.TextField(blank=True, verbose_name='Комментарий к заказу')
-    pay_method = models.CharField(max_length=2, choices=PAY_METHOD_CHOICES,
-                                  default=CASH_PAY, verbose_name='Способ оплаты', db_index=True)
+    pay_method = models.CharField(max_length=2, choices=PAY_METHOD_CHOICES, verbose_name='Способ оплаты', db_index=True)
 
     created_at = models.DateTimeField(default=timezone.now, verbose_name='Создан', db_index=True)
     called_at = models.DateTimeField(blank=True, null=True, verbose_name='Дата звонка', db_index=True)
