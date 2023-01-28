@@ -33,8 +33,8 @@ class ProductQuerySet(models.QuerySet):
     def available(self):
         products = (
             RestaurantMenuItem.objects
-            .filter(availability=True)
-            .values_list('product')
+                .filter(availability=True)
+                .values_list('product')
         )
         return self.filter(pk__in=products)
 
@@ -130,11 +130,11 @@ class OrderProductQuerySet(models.QuerySet):
     def order_cost(self):
         order_products_cost = (
             OrderProduct.objects
-            .all()
-            .annotate(cost=F('price') * F('quantity'))
-            .values_list('order', 'cost')
-            .values('order')
-            .annotate(total_price=Sum('cost'))
+                .all()
+                .annotate(cost=F('price') * F('quantity'))
+                .values_list('order', 'cost')
+                .values('order')
+                .annotate(total_price=Sum('cost'))
         )
         orders_cost = {}
         for cost_item in order_products_cost:
@@ -166,8 +166,8 @@ class Order(models.Model):
     ]
 
     products = models.ManyToManyField(Product, related_name='orders', through='OrderProduct', verbose_name='Продукты')
-    restaurant = models.ForeignKey(Restaurant, related_name='cook_orders', blank=True, null=True,
-                                   on_delete=models.SET_NULL, verbose_name='Готовит ресторан')
+    cooks_restaurant = models.ForeignKey(Restaurant, related_name='cook_orders', blank=True, null=True,
+                                         on_delete=models.SET_NULL, verbose_name='Готовит ресторан')
     firstname = models.CharField(max_length=150, verbose_name='Имя')
     lastname = models.CharField(max_length=150, verbose_name='Фамилия')
     address = models.CharField(max_length=255, verbose_name='Адрес')
