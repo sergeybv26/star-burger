@@ -112,8 +112,9 @@ def fetch_coordinates(apikey, address):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = Order.objects.exclude(order_status='FN').prefetch_related('products')
-    order_cost = Order.objects.get_order_cost()
+    orders = Order.objects.exclude(order_status='FN').prefetch_related('products').get_order_cost
+    print(orders)
+    # order_cost = Order.objects.get_order_cost()
     products_in_restaurants = {}
     restaurants_coordinates = {}
     for order in orders:

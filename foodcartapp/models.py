@@ -33,8 +33,8 @@ class ProductQuerySet(models.QuerySet):
     def available(self):
         products = (
             RestaurantMenuItem.objects
-                .filter(availability=True)
-                .values_list('product')
+            .filter(availability=True)
+            .values_list('product')
         )
         return self.filter(pk__in=products)
 
@@ -128,19 +128,25 @@ class RestaurantMenuItem(models.Model):
 
 class OrderProductQuerySet(models.QuerySet):
     def get_order_cost(self):
+        # order_products_cost = (
+        #     .filter(order=self)
+        #     .annotate(total_price=Sum(F('price') * F('quantity')))
+        # )
+        # print(f'{order_products_cost=}')
         order_products_cost = (
-            OrderProduct.objects
-                .all()
-                .annotate(cost=F('price') * F('quantity'))
-                .values_list('order', 'cost')
-                .values('order')
-                .annotate(total_price=Sum('cost'))
+            Order.products.all()
+            .annotate(cost=F('price') * F('quantity'))
+            .values_list('order', 'cost')
+            .values('order')
+            .annotate(total_price=Sum('cost'))
         )
-        orders_cost = {}
-        for cost_item in order_products_cost:
-            orders_cost[cost_item['order']] = cost_item['total_price']
-
-        return orders_cost
+        print(order_products_cost)
+        return order_products_cost
+        # orders_cost = {}
+        # for cost_item in order_products_cost:
+        #     orders_cost[cost_item['order']] = cost_item['total_price']
+        #
+        # return orders_cost
 
 
 class Order(models.Model):
