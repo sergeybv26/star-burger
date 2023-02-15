@@ -1,3 +1,5 @@
+from pprint import pprint
+
 import requests
 from django import forms
 from django.conf import settings
@@ -10,7 +12,7 @@ from django.contrib.auth import views as auth_views
 from geopy import distance
 
 from addressapp.models import AddressCoordinate
-from foodcartapp.models import Product, Restaurant, Order
+from foodcartapp.models import Product, Restaurant, Order, OrderProduct
 
 
 class Login(forms.Form):
@@ -112,13 +114,15 @@ def fetch_coordinates(apikey, address):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = Order.objects.exclude(order_status='FN').prefetch_related('products').get_order_cost
-    print(orders)
-    # order_cost = Order.objects.get_order_cost()
+    orders = Order.objects.exclude(order_status='FN').prefetch_related('products')
+
     products_in_restaurants = {}
     restaurants_coordinates = {}
+    orders_cost = {}
     for order in orders:
         products_in_order = order.products.all()
+        order_cost = OrderProduct.objects.get_order_cost(order)
+        orders_cost[order.id] = order_cost.total_price
         products_availability = []
         for product in products_in_order:
             availability = [item.restaurant for item in product.menu_items
@@ -166,6 +170,6 @@ def view_orders(request):
 
     return render(request, template_name='order_items.html', context={
         'order_items': orders,
-        'orders_cost': order_cost,
+        'orders_cost': orders_cost,
         'restaurants': products_in_restaurants
     })

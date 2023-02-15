@@ -9,13 +9,9 @@ def copy_product_in_order(apps, schema_editor):
     OrderProductNew = apps.get_model('foodcartapp', 'OrderProductNew')
 
     order_product_set = OrderProduct.objects.all().select_related('product')
-    order_product_iterator = order_product_set.iterator()
-    try:
-        first_order_product = next(order_product_iterator)
-    except StopIteration:
-        pass
-    else:
-        for order_product in chain([first_order_product], order_product_iterator):
+    if order_product_set:
+        order_product_iterator = order_product_set.iterator()
+        for order_product in chain(order_product_iterator):
             OrderProductNew.objects.get_or_create(
                 order=order_product.order,
                 product=order_product.product,

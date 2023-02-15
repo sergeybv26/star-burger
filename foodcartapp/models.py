@@ -127,26 +127,14 @@ class RestaurantMenuItem(models.Model):
 
 
 class OrderProductQuerySet(models.QuerySet):
-    def get_order_cost(self):
-        # order_products_cost = (
-        #     .filter(order=self)
-        #     .annotate(total_price=Sum(F('price') * F('quantity')))
-        # )
-        # print(f'{order_products_cost=}')
+    def get_order_cost(self, order):
         order_products_cost = (
-            Order.products.all()
+            self.filter(order=order)
             .annotate(cost=F('price') * F('quantity'))
-            .values_list('order', 'cost')
-            .values('order')
             .annotate(total_price=Sum('cost'))
+            .first()
         )
-        print(order_products_cost)
         return order_products_cost
-        # orders_cost = {}
-        # for cost_item in order_products_cost:
-        #     orders_cost[cost_item['order']] = cost_item['total_price']
-        #
-        # return orders_cost
 
 
 class Order(models.Model):
@@ -189,8 +177,6 @@ class Order(models.Model):
     delivered_at = models.DateTimeField(blank=True, null=True, verbose_name='Дата доставки', db_index=True)
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Обновлен')
 
-    objects = OrderProductQuerySet.as_manager()
-
     class Meta:
         ordering = ['order_status', '-created_at']
         verbose_name = 'Заказ'
@@ -210,6 +196,8 @@ class OrderProduct(models.Model):
         decimal_places=2,
         validators=[MinValueValidator(0)]
     )
+
+    objects = OrderProductQuerySet.as_manager()
 
     class Meta:
         verbose_name = 'Продукт'
