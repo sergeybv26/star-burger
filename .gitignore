@@ -132,3 +132,6 @@ dmypy.json
 bundles
 
 node_modules
+
+.parcel-cache
+media
