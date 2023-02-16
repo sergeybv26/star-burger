@@ -1,6 +1,6 @@
 from pprint import pprint
+from addressapp.yandex_geocode import fetch_coordinates
 
-import requests
 from django import forms
 from django.conf import settings
 from django.shortcuts import redirect, render
@@ -94,32 +94,15 @@ def view_restaurants(request):
     })
 
 
-def fetch_coordinates(apikey, address):
-    base_url = "https://geocode-maps.yandex.ru/1.x"
-    response = requests.get(base_url, params={
-        "geocode": address,
-        "apikey": apikey,
-        "format": "json",
-    })
-    response.raise_for_status()
-    found_places = response.json()['response']['GeoObjectCollection']['featureMember']
-
-    if not found_places:
-        return None
-
-    most_relevant = found_places[0]
-    lon, lat = most_relevant['GeoObject']['Point']['pos'].split(" ")
-    return lat, lon
-
-
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
     orders = Order.objects.exclude(order_status='FN').prefetch_related('products')
 
     products_in_restaurants = {}
-    restaurants_coordinates = {}
     orders_cost = {}
     for order in orders:
+        addresses = []
+        adress_coordinates = {}
         products_in_order = order.products.all()
         order_cost = OrderProduct.objects.get_order_cost(order)
         orders_cost[order.id] = order_cost.total_price
@@ -129,39 +112,34 @@ def view_orders(request):
                             .filter(availability=True)
                             .select_related('restaurant')]
             products_availability.append(availability)
+
         restaurants_with_all_products = list(
             set.intersection(*[set(product_restaurants) for product_restaurants in products_availability])
         )
         restaurant_distance = []
-        for restaurant in restaurants_with_all_products:
-            try:
-                address_obj = AddressCoordinate.objects.get(address=order.address)
-                user_coord = (address_obj.lat, address_obj.lon)
-            except AddressCoordinate.DoesNotExist:
-                user_coord = fetch_coordinates(settings.YA_GEO_API_KEY, order.address)
-                if not user_coord:
-                    continue
+        addresses = [restaurant.address for restaurant in restaurants_with_all_products]
+        addresses.append(order.address)
+        address_objects = AddressCoordinate.objects.filter(address__in=addresses)
+        for address in addresses:
+            for address_obj in address_objects:
+                if address_obj.address == address:
+                    adress_coordinates[address] = {'lat': address_obj.lat, 'lon': address_obj.lon}
+                    break
+            if address not in adress_coordinates.keys():
+                lat, lon = fetch_coordinates(settings.YA_GEO_API_KEY, address)
                 AddressCoordinate.objects.create(
-                    address=order.address,
-                    lat=user_coord[0],
-                    lon=user_coord[1]
+                    address=address,
+                    lat=lat,
+                    lon=lon
                 )
-            if restaurant not in restaurants_coordinates.keys():
-                try:
-                    address_obj = AddressCoordinate.objects.get(address=restaurant.address)
-                    restaurant_coord = (address_obj.lat, address_obj.lon)
-                except AddressCoordinate.DoesNotExist:
-                    restaurant_coord = fetch_coordinates(settings.YA_GEO_API_KEY, restaurant.address)
-                    if not restaurant_coord:
-                        continue
-                    AddressCoordinate.objects.create(
-                        address=restaurant.address,
-                        lat=restaurant_coord[0],
-                        lon=restaurant_coord[1]
-                    )
-                restaurants_coordinates[restaurant] = restaurant_coord
-            else:
-                restaurant_coord = restaurants_coordinates[restaurant]
+                adress_coordinates[address] = {'lat': lat, 'lon': lon}
+
+        for restaurant in restaurants_with_all_products:
+            user_coord = (adress_coordinates[order.address]['lat'], adress_coordinates[order.address]['lon'])
+            restaurant_coord = (
+                adress_coordinates[restaurant.address]['lat'],
+                adress_coordinates[restaurant.address]['lon']
+            )
 
             delivery_distance = round(distance.distance(user_coord, restaurant_coord).km, 3)
             restaurant_distance.append((restaurant, delivery_distance))
