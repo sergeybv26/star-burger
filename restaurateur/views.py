@@ -123,7 +123,7 @@ def view_orders(request):
         for address in addresses:
             for address_obj in address_objects:
                 if address_obj.address == address:
-                    adress_coordinates[address] = {'lat': address_obj.lat, 'lon': address_obj.lon}
+                    adress_coordinates[address] = (address_obj.lat, address_obj.lon)
                     break
             if address not in adress_coordinates.keys():
                 lat, lon = fetch_coordinates(settings.YA_GEO_API_KEY, address)
@@ -132,14 +132,11 @@ def view_orders(request):
                     lat=lat,
                     lon=lon
                 )
-                adress_coordinates[address] = {'lat': lat, 'lon': lon}
+                adress_coordinates[address] = (lat, lon)
 
         for restaurant in restaurants_with_all_products:
-            user_coord = (adress_coordinates[order.address]['lat'], adress_coordinates[order.address]['lon'])
-            restaurant_coord = (
-                adress_coordinates[restaurant.address]['lat'],
-                adress_coordinates[restaurant.address]['lon']
-            )
+            user_coord = adress_coordinates[order.address]
+            restaurant_coord = adress_coordinates[restaurant.address]
 
             delivery_distance = round(distance.distance(user_coord, restaurant_coord).km, 3)
             restaurant_distance.append((restaurant, delivery_distance))
