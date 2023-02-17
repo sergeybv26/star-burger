@@ -97,15 +97,15 @@ def view_restaurants(request):
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
     orders = Order.objects.exclude(order_status='FN').prefetch_related('products')
-
+    orders_cost_info = OrderProduct.objects.get_order_cost().select_related('order')
     products_in_restaurants = {}
     orders_cost = {}
+    for order_cost in orders_cost_info:
+        orders_cost[order_cost.order.id] = order_cost.total_price
     for order in orders:
         addresses = []
         adress_coordinates = {}
         products_in_order = order.products.all()
-        order_cost = OrderProduct.objects.get_order_cost(order)
-        orders_cost[order.id] = order_cost.total_price
         products_availability = []
         for product in products_in_order:
             availability = [item.restaurant for item in product.menu_items
