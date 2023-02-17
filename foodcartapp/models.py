@@ -129,8 +129,7 @@ class RestaurantMenuItem(models.Model):
 class OrderProductQuerySet(models.QuerySet):
     def get_order_cost(self):
         order_products_cost = (
-            self.annotate(cost=F('price') * F('quantity'))
-            .annotate(total_price=Sum('cost'))
+            self.annotate(total_price=Sum(F('price') * F('quantity')))
         )
         return order_products_cost
 

@@ -101,7 +101,10 @@ def view_orders(request):
     orders_cost = {}
     order_items = []
     for order_cost in orders_cost_info:
-        orders_cost[order_cost.order.id] = order_cost.total_price
+        if order_cost.order.id not in orders_cost:
+            orders_cost[order_cost.order.id] = order_cost.total_price
+        else:
+            orders_cost[order_cost.order.id] += order_cost.total_price
     for order in orders:
         addresses = []
         adress_coordinates = {}
