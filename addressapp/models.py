@@ -8,7 +8,7 @@ class AddressCoordinate(models.Model):
     lat = models.FloatField(verbose_name='Широта')
     lon = models.FloatField(verbose_name='Долгота')
 
-    request_date = models.DateTimeField(default=timezone.now, verbose_name='Координаты обновлены', db_index=True)
+    requested_at = models.DateTimeField(default=timezone.now, verbose_name='Координаты обновлены', db_index=True)
 
     class Meta:
         verbose_name = 'адрес'
