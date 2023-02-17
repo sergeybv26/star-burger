@@ -98,8 +98,8 @@ def view_restaurants(request):
 def view_orders(request):
     orders = Order.objects.exclude(order_status='FN').prefetch_related('products')
     orders_cost_info = OrderProduct.objects.get_order_cost().select_related('order')
-    products_in_restaurants = {}
     orders_cost = {}
+    order_items = []
     for order_cost in orders_cost_info:
         orders_cost[order_cost.order.id] = order_cost.total_price
     for order in orders:
@@ -141,10 +141,8 @@ def view_orders(request):
             delivery_distance = round(distance.distance(user_coord, restaurant_coord).km, 3)
             restaurant_distance.append((restaurant, delivery_distance))
         restaurant_distance = sorted(restaurant_distance, key=lambda tpl: tpl[1])
-        products_in_restaurants[order.id] = restaurant_distance
+        order_items.append((order, orders_cost[order.id], restaurant_distance))
 
     return render(request, template_name='order_items.html', context={
-        'order_items': orders,
-        'orders_cost': orders_cost,
-        'restaurants': products_in_restaurants
+        'order_items': order_items
     })
