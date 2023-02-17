@@ -97,15 +97,18 @@ def view_restaurants(request):
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
     orders = Order.objects.exclude(order_status='FN').prefetch_related('products')
-
-    products_in_restaurants = {}
+    orders_cost_info = OrderProduct.objects.get_order_cost().select_related('order')
     orders_cost = {}
+    order_items = []
+    for order_cost in orders_cost_info:
+        if order_cost.order.id not in orders_cost:
+            orders_cost[order_cost.order.id] = order_cost.total_price
+        else:
+            orders_cost[order_cost.order.id] += order_cost.total_price
     for order in orders:
         addresses = []
         adress_coordinates = {}
         products_in_order = order.products.all()
-        order_cost = OrderProduct.objects.get_order_cost(order)
-        orders_cost[order.id] = order_cost.total_price
         products_availability = []
         for product in products_in_order:
             availability = [item.restaurant for item in product.menu_items
@@ -141,10 +144,8 @@ def view_orders(request):
             delivery_distance = round(distance.distance(user_coord, restaurant_coord).km, 3)
             restaurant_distance.append((restaurant, delivery_distance))
         restaurant_distance = sorted(restaurant_distance, key=lambda tpl: tpl[1])
-        products_in_restaurants[order.id] = restaurant_distance
+        order_items.append((order, orders_cost[order.id], restaurant_distance))
 
     return render(request, template_name='order_items.html', context={
-        'order_items': orders,
-        'orders_cost': orders_cost,
-        'restaurants': products_in_restaurants
+        'order_items': order_items
     })

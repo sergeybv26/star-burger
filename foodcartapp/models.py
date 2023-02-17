@@ -127,12 +127,9 @@ class RestaurantMenuItem(models.Model):
 
 
 class OrderProductQuerySet(models.QuerySet):
-    def get_order_cost(self, order):
+    def get_order_cost(self):
         order_products_cost = (
-            self.filter(order=order)
-            .annotate(cost=F('price') * F('quantity'))
-            .annotate(total_price=Sum('cost'))
-            .first()
+            self.annotate(total_price=Sum(F('price') * F('quantity')))
         )
         return order_products_cost
 
@@ -160,8 +157,8 @@ class Order(models.Model):
     ]
 
     products = models.ManyToManyField(Product, related_name='orders', through='OrderProduct', verbose_name='Продукты')
-    cooks_restaurant = models.ForeignKey(Restaurant, related_name='cook_orders', blank=True, null=True,
-                                         on_delete=models.SET_NULL, verbose_name='Готовит ресторан')
+    restaurant = models.ForeignKey(Restaurant, related_name='cook_orders', blank=True, null=True,
+                                   on_delete=models.SET_NULL, verbose_name='Готовит ресторан')
     firstname = models.CharField(max_length=150, verbose_name='Имя')
     lastname = models.CharField(max_length=150, verbose_name='Фамилия')
     address = models.CharField(max_length=255, verbose_name='Адрес')
@@ -187,8 +184,9 @@ class Order(models.Model):
 
 
 class OrderProduct(models.Model):
-    order = models.ForeignKey(Order, related_name='order_item', on_delete=models.CASCADE, verbose_name='Заказ')
-    product = models.ForeignKey(Product, related_name='order_item', on_delete=models.CASCADE, verbose_name='Продукт')
+    order = models.ForeignKey(Order, related_name='order_products', on_delete=models.CASCADE, verbose_name='Заказ')
+    product = models.ForeignKey(Product, related_name='order_products',
+                                on_delete=models.CASCADE, verbose_name='Продукт')
     quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)], verbose_name='Количество')
     price = models.DecimalField(
         'цена',
