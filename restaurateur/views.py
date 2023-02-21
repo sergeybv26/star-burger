@@ -1,3 +1,4 @@
+import collections
 from pprint import pprint
 from addressapp.yandex_geocode import fetch_coordinates
 
@@ -144,7 +145,21 @@ def view_orders(request):
             delivery_distance = round(distance.distance(user_coord, restaurant_coord).km, 3)
             restaurant_distance.append((restaurant, delivery_distance))
         restaurant_distance = sorted(restaurant_distance, key=lambda tpl: tpl[1])
-        order_items.append((order, orders_cost[order.id], restaurant_distance))
+
+        order_items.append(
+            {
+                'id': order.id,
+                'status': order.get_order_status_display,
+                'pay_method': order.get_pay_method_display,
+                'order_cost': orders_cost[order.id],
+                'firstname': order.firstname,
+                'lastname': order.lastname,
+                'phonenumber': order.phonenumber,
+                'address': order.address,
+                'restaurant': order.restaurant_prepare,
+                'restaurants_awailable': restaurant_distance
+            }
+        )
 
     return render(request, template_name='order_items.html', context={
         'order_items': order_items

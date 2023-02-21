@@ -128,10 +128,7 @@ class RestaurantMenuItem(models.Model):
 
 class OrderProductQuerySet(models.QuerySet):
     def get_order_cost(self):
-        order_products_cost = (
-            self.annotate(total_price=Sum(F('price') * F('quantity')))
-        )
-        return order_products_cost
+        return self.annotate(total_price=Sum(F('price') * F('quantity')))
 
 
 class Order(models.Model):
@@ -157,8 +154,8 @@ class Order(models.Model):
     ]
 
     products = models.ManyToManyField(Product, related_name='orders', through='OrderProduct', verbose_name='Продукты')
-    restaurant = models.ForeignKey(Restaurant, related_name='cook_orders', blank=True, null=True,
-                                   on_delete=models.SET_NULL, verbose_name='Готовит ресторан')
+    restaurant_prepare = models.ForeignKey(Restaurant, related_name='cook_orders', blank=True, null=True,
+                                           on_delete=models.SET_NULL, verbose_name='Готовит ресторан')
     firstname = models.CharField(max_length=150, verbose_name='Имя')
     lastname = models.CharField(max_length=150, verbose_name='Фамилия')
     address = models.CharField(max_length=255, verbose_name='Адрес')

@@ -26,30 +26,30 @@
 
     {% for item in order_items %}
       <tr>
-        <td>{{ item.0.id }}</td>
-        <td>{{ item.0.get_order_status_display }}</td>
-        <td>{{ item.0.get_pay_method_display }}</td>
-        <td>{{ item.1 }}</td>
-        <td>{{ item.0.firstname }} {{ item.0.lastname }}</td>
-        <td>{{ item.0.phonenumber }}</td>
-        <td>{{ item.0.address }}</td>
+        <td>{{ item.id }}</td>
+        <td>{{ item.status }}</td>
+        <td>{{ item.pay_method }}</td>
+        <td>{{ item.order_cost }}</td>
+        <td>{{ item.firstname }} {{ item.lastname }}</td>
+        <td>{{ item.phonenumber }}</td>
+        <td>{{ item.address }}</td>
         <td>
-            {% if item.0.restaurant %}
-              Готовит {{ item.0.restaurant }}
-            {% elif not item.2 %}
+            {% if item.restaurant %}
+              Готовит {{ item.restaurant }}
+            {% elif not item.restaurants_awailable %}
                 Ошибка определения координат
             {% else %}
               <details>
                 <summary>Может быть приготовлен ресторанами:</summary>
                 <ul>
-                  {% for restaurant in item.2 %}
-                    <li>{{ restaurant.0 }} - {{ restaurant.1 }} км</li>
+                  {% for restaurant, distance in item.restaurants_awailable %}
+                    <li>{{ restaurant }} - {{ distance }} км</li>
                   {% endfor %}
                 </ul>
               </details>
             {% endif %}
         </td>
-        <td><a href="{% url 'admin:foodcartapp_order_change' object_id=item.0.id %}?next={{ request.get_full_path|urlencode }}">Редактировать</a> </td>
+        <td><a href="{% url 'admin:foodcartapp_order_change' object_id=item.id %}?next={{ request.get_full_path|urlencode }}">Редактировать</a> </td>
       </tr>
     {% endfor %}
    </table>
