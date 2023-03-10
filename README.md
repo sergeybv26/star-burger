@@ -65,6 +65,14 @@ SECRET_KEY=django-insecure-0if40nf4nf93n4
 YA_GEO_API_KEY=<ваш ключ API>
 ```
 
+Для логирования ошибок имеется возможность подключить Rollbar.
+Для этоко необходимо:
+- Получить токен для доступа к <a href="https://rollbar.com/">Rollbar</a>
+- Определить токен Rollbar в переменной окружения `ROLLBAR_TOKEN` в файле `.env`, дополнив его следующим кодом:
+```shell
+ROLLBAR_TOKEN=<ваш токен Rollbar>
+```
+
 Создайте файл базы данных SQLite и отмигрируйте её следующей командой:
 
 ```sh
@@ -156,3 +164,5 @@ Parcel будет следить за файлами в каталоге `bundle
 - `SECRET_KEY` — секретный ключ проекта. Он отвечает за шифрование на сайте. Например, им зашифрованы все пароли на вашем сайте.
 - `ALLOWED_HOSTS` — [см. документацию Django](https://docs.djangoproject.com/en/3.1/ref/settings/#allowed-hosts)
 - `YA_GEO_API_KEY` - ваш ключ к API Yandex
+- `ROLLBAR_TOKEN` - ваш токен Rollbar
+- `ROLLBAR_ENVIRONMENT` - тип окружения Rollbar. Поставиьте `prodaction`
