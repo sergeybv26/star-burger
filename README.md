@@ -17,6 +17,36 @@
 
 Для запуска сайта нужно запустить **одновременно** бэкенд и фронтенд, в двух терминалах.
 
+### Установка и первоначальная настройка БД PostgreSQL
+Установка и настройка PostgreSQL выполняется в следующей последовательности:
+- Установим PostgreSQL
+```sh
+$ sudo apt install postgresql postgresql-contrib
+```
+- Переключаемся на пользователя postgres
+```sh
+$ sudo -i -u postgres
+```
+- После ввода команды видим подтверждение о переходе в аккаунт:
+```sh
+postgres@hostname:~$
+```
+- Откроем консоль PostgreSQL
+```sh
+$ psql
+```
+- Запись в начале строки изменится на `postgres=#`
+- Поменяем пароль пользователя postgres
+```sh
+postgres=# \password
+```
+- Выходим из терминала `psql` командой `\q`
+- Создадим базу данных:
+```sh
+postgres@hostname:~$ createdb star-burger
+```
+
+
 ### Как собрать бэкенд
 
 Скачайте код:
@@ -63,6 +93,11 @@ SECRET_KEY=django-insecure-0if40nf4nf93n4
 Определите ключ API Yandex в переменной окружения `YA_GEO_API_KEY` в файле `.env`. Для чего дополните файл `.env` следующим кодом:
 ```shell
 YA_GEO_API_KEY=<ваш ключ API>
+```
+
+Определите url базы данных PostgreSQL в переменной окружения `DB_URL`, дополнив файл `.env` следующим кодом:
+```sh
+DB_URL=postgres://postgres:<ваш пароль к БД>@localhost:5432/star-burger
 ```
 
 Для логирования ошибок имеется возможность подключить Rollbar.
@@ -166,3 +201,4 @@ Parcel будет следить за файлами в каталоге `bundle
 - `YA_GEO_API_KEY` - ваш ключ к API Yandex
 - `ROLLBAR_TOKEN` - ваш токен Rollbar
 - `ROLLBAR_ENVIRONMENT` - тип окружения Rollbar. Поставиьте `prodaction`
+- `DB_URL` - url базы данных. URL должен иметь формат: `postgres://USER:PASSWORD@HOST:PORT/NAME`
