@@ -243,3 +243,6 @@ echo "Deploy is completed"
 $ chmod a+x deploy_star_burger.sh
 ```
 Для быстрого обновления кода и перезапуска сервисов необходимо запустить скрипт `deploy_star_burger.sh`
+
+## Пример работающего сайта
+Для ознакомления с работающим сайтом прейдите по <a href="https://star-burger.freemyip.com/">ссылке.</a>
