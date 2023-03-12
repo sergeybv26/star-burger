@@ -43,6 +43,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
+    'rollbar.contrib.django.middleware.RollbarNotifierMiddlewareExcluding404',
 ]
 
 ROOT_URLCONF = 'star_burger.urls'
@@ -87,7 +88,7 @@ MEDIA_URL = '/media/'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default='sqlite:////{0}'.format(os.path.join(BASE_DIR, 'db.sqlite3'))
+        default=env('DB_URL')
     )
 }
 
@@ -127,3 +128,10 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "assets"),
     os.path.join(BASE_DIR, "bundles"),
 ]
+
+ROLLBAR = {
+    'access_token': env.str('ROLLBAR_TOKEN', default=''),
+    'environment': env.str('ROLLBAR_ENVIRONMENT', default='development'),
+    'code_version': '1.0',
+    'root': BASE_DIR,
+}

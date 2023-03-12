@@ -17,6 +17,36 @@
 
 Для запуска сайта нужно запустить **одновременно** бэкенд и фронтенд, в двух терминалах.
 
+### Установка и первоначальная настройка БД PostgreSQL
+Установка и настройка PostgreSQL выполняется в следующей последовательности:
+- Установим PostgreSQL
+```sh
+$ sudo apt install postgresql postgresql-contrib
+```
+- Переключаемся на пользователя postgres
+```sh
+$ sudo -i -u postgres
+```
+- После ввода команды видим подтверждение о переходе в аккаунт:
+```sh
+postgres@hostname:~$
+```
+- Откроем консоль PostgreSQL
+```sh
+$ psql
+```
+- Запись в начале строки изменится на `postgres=#`
+- Поменяем пароль пользователя postgres
+```sh
+postgres=# \password
+```
+- Выходим из терминала `psql` командой `\q`
+- Создадим базу данных:
+```sh
+postgres@hostname:~$ createdb star-burger
+```
+
+
 ### Как собрать бэкенд
 
 Скачайте код:
@@ -63,6 +93,19 @@ SECRET_KEY=django-insecure-0if40nf4nf93n4
 Определите ключ API Yandex в переменной окружения `YA_GEO_API_KEY` в файле `.env`. Для чего дополните файл `.env` следующим кодом:
 ```shell
 YA_GEO_API_KEY=<ваш ключ API>
+```
+
+Определите url базы данных PostgreSQL в переменной окружения `DB_URL`, дополнив файл `.env` следующим кодом:
+```sh
+DB_URL=postgres://postgres:<ваш пароль к БД>@localhost:5432/star-burger
+```
+
+Для логирования ошибок имеется возможность подключить Rollbar.
+Для этоко необходимо:
+- Получить токен для доступа к <a href="https://rollbar.com/">Rollbar</a>
+- Определить токен Rollbar в переменной окружения `ROLLBAR_TOKEN` в файле `.env`, дополнив его следующим кодом:
+```shell
+ROLLBAR_TOKEN=<ваш токен Rollbar>
 ```
 
 Создайте файл базы данных SQLite и отмигрируйте её следующей командой:
@@ -156,3 +199,50 @@ Parcel будет следить за файлами в каталоге `bundle
 - `SECRET_KEY` — секретный ключ проекта. Он отвечает за шифрование на сайте. Например, им зашифрованы все пароли на вашем сайте.
 - `ALLOWED_HOSTS` — [см. документацию Django](https://docs.djangoproject.com/en/3.1/ref/settings/#allowed-hosts)
 - `YA_GEO_API_KEY` - ваш ключ к API Yandex
+- `ROLLBAR_TOKEN` - ваш токен Rollbar
+- `ROLLBAR_ENVIRONMENT` - тип окружения Rollbar. Поставиьте `prodaction`
+- `DB_URL` - url базы данных. URL должен иметь формат: `postgres://USER:PASSWORD@HOST:PORT/NAME`
+
+Имеется возможность быстро обновить код на сервере. 
+Необходимо в домашней директории создать файл `deploy_star_burger.sh` со следующим содержимым:
+```sh
+#!/bin/bash
+set -e
+
+REPOSITORY=`pwd`/opt/star-burger
+
+cd "$REPOSITORY"
+git status
+echo "Fetching"
+git fetch
+echo "Pulling"
+git pull
+
+echo "Update Python requirements"
+env/bin/pip install -r requirements.txt
+echo "Apply migrations"
+env/bin/python manage.py migrate
+
+echo "Update nodejs requirements"
+npm ci --dev
+echo "Build frontend"
+./node_modules/.bin/parcel build bundles-src/index.js --dist-dir bundles --public-url="./"
+echo "Collectstatic"
+env/bin/python manage.py collectstatic --noinput
+
+echo "Restart services"
+sudo systemctl restart star-burger.service
+sudo systemctl reload nginx.service
+
+echo "Deploy is completed"
+```
+В файле `star-burger.service` - наименование systemd сервиса, который запускает бэкенд.
+
+После создания файла необходимо установить права на запуск, выполнив команду:
+```sh
+$ chmod a+x deploy_star_burger.sh
+```
+Для быстрого обновления кода и перезапуска сервисов необходимо запустить скрипт `deploy_star_burger.sh`
+
+## Пример работающего сайта
+Для ознакомления с работающим сайтом прейдите по <a href="https://star-burger.freemyip.com/">ссылке.</a>
