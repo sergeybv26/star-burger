@@ -202,3 +202,44 @@ Parcel будет следить за файлами в каталоге `bundle
 - `ROLLBAR_TOKEN` - ваш токен Rollbar
 - `ROLLBAR_ENVIRONMENT` - тип окружения Rollbar. Поставиьте `prodaction`
 - `DB_URL` - url базы данных. URL должен иметь формат: `postgres://USER:PASSWORD@HOST:PORT/NAME`
+
+Имеется возможность быстро обновить код на сервере. 
+Необходимо в домашней директории создать файл `deploy_star_burger.sh` со следующим содержимым:
+```sh
+#!/bin/bash
+set -e
+
+REPOSITORY=`pwd`/opt/star-burger
+
+cd "$REPOSITORY"
+git status
+echo "Fetching"
+git fetch
+echo "Pulling"
+git pull
+
+echo "Update Python requirements"
+env/bin/pip install -r requirements.txt
+echo "Apply migrations"
+env/bin/python manage.py migrate
+
+echo "Update nodejs requirements"
+npm ci --dev
+echo "Build frontend"
+./node_modules/.bin/parcel build bundles-src/index.js --dist-dir bundles --public-url="./"
+echo "Collectstatic"
+env/bin/python manage.py collectstatic --noinput
+
+echo "Restart services"
+sudo systemctl restart star-burger.service
+sudo systemctl reload nginx.service
+
+echo "Deploy is completed"
+```
+В файле `star-burger.service` - наименование systemd сервиса, который запускает бэкенд.
+
+После создания файла необходимо установить права на запуск, выполнив команду:
+```sh
+$ chmod a+x deploy_star_burger.sh
+```
+Для быстрого обновления кода и перезапуска сервисов необходимо запустить скрипт `deploy_star_burger.sh`
