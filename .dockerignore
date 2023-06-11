@@ -1,0 +1,10 @@
+**/*.pyc
+**/*_cache
+**/__pycache__
+.*
+docs
+docker-compose.yml
+README.md
+env/
+media/
+frontend/

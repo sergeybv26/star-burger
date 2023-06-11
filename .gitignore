@@ -137,4 +137,3 @@ node_modules
 media
 
 staticfiles/
-*.json
