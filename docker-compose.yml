@@ -1,0 +1,111 @@
+version: '3.9'
+
+services:
+  postgres:
+    container_name: db
+    image: postgres
+    environment:
+      - PGDATA=/var/lib/postgresql/data/backend/
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-"change_me"}
+      - POSTGRES_USER=${POSTGRES_USERNAME:-"postgres"}
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/initdb.sql:/docker-entrypoint-initdb.d/initdb.sql
+    logging:
+      driver: "json-file"
+      options:
+        max-size: 100m
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 2g
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      - backend-network
+    ports:
+      - 0.0.0.0:5432:5432
+    restart: always
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL:-"change_me@test.com"}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD:-"change_me"}
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - pgadmin-data:/var/lib/pgadmin
+    logging:
+      driver: "json-file"
+      options:
+        max-size: 100m
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 1g
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - 8085:80
+    networks:
+      - backend-network
+    restart: always
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: develop
+    container_name: star-burger-backend
+    depends_on:
+      - postgres
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-"secret_key_change_me"}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-"localhost,127.0.0.1"}
+      - DEBUG=${DEBUG:-"False"}
+      - YA_GEO_API_KEY=${YA_GEO_API_KEY}
+      - DB_URL=${DB_URL}
+      - ROLLBAR_TOKEN=${ROLLBAR_TOKEN}
+      - ROLLBAR_ENVIRONMENT=${ROLLBAR_ENVIRONMENT:-"prodaction"}
+    volumes:
+      - ./bundles:/backend/bundles
+      - ./assets:/backend/assets
+      - ./media:/backend/media
+    command: bash -c "
+        python manage.py collectstatic --noinput \
+        && python manage.py runserver 0.0.0.0:8000
+      "
+    logging:
+      driver: "json-file"
+      options:
+        max-size: 100m
+        max-file: "3"
+
+    mem_limit: 1g
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "8001:8000"
+    networks:
+      - backend-network
+    restart: always
+
+volumes:
+  postgres-data:
+    driver: local
+  pgadmin-data:
+    driver: local
+
+networks:
+  backend-network:
+    external: true
