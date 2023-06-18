@@ -1,12 +1,19 @@
 version: '3.9'
 
 services:
+  frontend:
+    build: ./frontend
+    command: bash -c "
+        ./node_modules/.bin/parcel build bundles-src/index.js --dist-dir bundles --no-source-maps --no-cache
+      "
+    volumes:
+      - ./bundles:/frontend/bundles
   postgres:
     container_name: db
     image: postgres
     environment:
       - PGDATA=/var/lib/postgresql/data/backend/
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-"change_me"}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_USER=${POSTGRES_USERNAME:-"postgres"}
     volumes:
       - /etc/timezone:/etc/timezone:ro
@@ -36,7 +43,7 @@ services:
     container_name: pgadmin
     environment:
       - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL:-"change_me@test.com"}
-      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD:-"change_me"}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
     volumes:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
@@ -61,12 +68,17 @@ services:
 
   backend:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
       target: develop
     container_name: star-burger-backend
     depends_on:
-      - postgres
+      postgres:
+        condition:
+          service_started
+      frontend:
+        condition:
+          service_completed_successfully
     environment:
       - SECRET_KEY=${SECRET_KEY:-"secret_key_change_me"}
       - ALLOWED_HOSTS=${ALLOWED_HOSTS:-"localhost,127.0.0.1"}
@@ -79,6 +91,7 @@ services:
       - ./bundles:/backend/bundles
       - ./assets:/backend/assets
       - ./media:/backend/media
+      - ./staticfiles:/backend/staticfiles
     command: bash -c "
         python manage.py collectstatic --noinput \
         && python manage.py runserver 0.0.0.0:8000
@@ -99,6 +112,25 @@ services:
     networks:
       - backend-network
     restart: always
+
+  nginx:
+    image: nginx:1.25.1-alpine
+    container_name: nginx
+    depends_on:
+      - backend
+    volumes:
+      - ./staticfiles:/star-burger/www/staticfiles
+      - ./maedia:/star-burger/www/media
+      - ./assets:/star-burger/www/assets
+      - ./nginx/conf:/etc/nginx/templates
+      - /etc/letsencrypt/live/star-burger.freemyip.com:/etc/nginx/certs
+    environment:
+      - NGINX_HOST=${NGINX_HOST}
+      - NGINX_PORT=${NGINX_PORT:-80}
+      - NGINX_SSL_PORT=${NGINX_SSL_PORT:-443}
+    ports:
+      - "80:80"
+      - "443:443"
 
 volumes:
   postgres-data:
