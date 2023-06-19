@@ -10,7 +10,7 @@ git fetch
 echo "Pulling"
 git pull
 
-echo "Restart containers"
-docker compose restart
+echo "Up or restart containers"
+docker compose up -d --build 
 
 echo "Deploy is completed"
