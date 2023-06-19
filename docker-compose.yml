@@ -121,10 +121,15 @@ services:
       - ./staticfiles:/star-burger/www/staticfiles
       - ./maedia:/star-burger/www/media
       - ./assets:/star-burger/www/assets
+      - ./nginx/conf:/etc/nginx/templates
+      - /etc/letsencrypt/live/star-burger.freemyip.com:/etc/nginx/certs
     environment:
       - NGINX_HOST=${NGINX_HOST}
       - NGINX_PORT=${NGINX_PORT:-80}
       - NGINX_SSL_PORT=${NGINX_SSL_PORT:-443}
+    ports:
+      - "80:80"
+      - "443:443"
 
 volumes:
   postgres-data:
