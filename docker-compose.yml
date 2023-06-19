@@ -4,8 +4,7 @@ services:
   frontend:
     build: ./frontend
     command: bash -c "
-        ./node_modules/.bin/parcel build bundles-src/index.js --dist-dir bundles --no-source-maps --no-cache
-      "
+        ./node_modules/.bin/parcel build bundles-src/index.js --dist-dir bundles --no-source-maps --no-cache"
     volumes:
       - ./bundles:/frontend/bundles
   postgres:
